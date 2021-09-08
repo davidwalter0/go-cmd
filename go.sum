@@ -7,8 +7,12 @@ github.com/PuerkitoBio/urlesc v0.0.0-20160726150825-5bd2802263f2/go.mod h1:uGdko
 github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578/go.mod h1:uGdkoq3SwY9Y+13GIhn11/XLaGBb4BfwItxLd5jeuXE=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
+github.com/davidwalter0/go-cfg v0.0.0-20210908003146-ce57faf8aaaa h1:y0e3TrJjo56pE9m3MmjIGYhfG8fZP4gdbEhIKsnsAMU=
+github.com/davidwalter0/go-cfg v0.0.0-20210908003146-ce57faf8aaaa/go.mod h1:PF2Le2Zc/xWIGbrLp+FBA4JypLvmolwgWVlAOOoVotw=
 github.com/davidwalter0/go-cfg v1.2.13 h1:KURyAPUUbZgm674bUqmObB3unyCAC78PU3nMHWUxVSU=
 github.com/davidwalter0/go-cfg v1.2.13/go.mod h1:pYnEzExTXMM9VyvqZW8EZ8HglBfFtGp+T6PeqkPfe3I=
+github.com/davidwalter0/go-flag v0.0.0-20210908002747-341a98d27053 h1:vwcx5IyfLEd50zvfE5CP0C7RXCv5Apdq/Wzv1U+YBP4=
+github.com/davidwalter0/go-flag v0.0.0-20210908002747-341a98d27053/go.mod h1:xX3EXodaOhFTaqSo/5hEsNCY/6Mpkb47tXWIn+lXCxM=
 github.com/davidwalter0/go-flag v0.2.5 h1:QfeSpmh60Vj/pZ4Ev9Q8Uoe1HM+g7PIugCovwQBPRLI=
 github.com/davidwalter0/go-flag v0.2.5/go.mod h1:xX3EXodaOhFTaqSo/5hEsNCY/6Mpkb47tXWIn+lXCxM=
 github.com/emicklei/go-restful v0.0.0-20170410110728-ff4f55a20633/go.mod h1:otzb+WCGbkyDHkqmQmT5YD2WR4BBwUdeQoFo8l/7tVs=

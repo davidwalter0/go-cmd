@@ -39,6 +39,10 @@ func Args() (string, []string) {
 func Run(subCmd string, pgm interface{}) (err error) {
 	return
 }
+func IsStruct(i interface{}) (ptr bool) {
+	var v = reflect.ValueOf(i)
+	return v.Kind() != reflect.Ptr && v.Type().Kind() == reflect.Struct
+}
 
 func IsStructPtr(i interface{}) (ptr bool) {
 	v := reflect.ValueOf(i)
@@ -55,16 +59,24 @@ func Init(subCmd string, pgm interface{}) (cfgd interface{}, err error) {
 	for i := 0; i < v.NumField(); i++ {
 		var name = typeOfS.Field(i).Name
 		if subCmd == name {
-
-			err = cfg.Flags(v.Field(i).Interface())
-
+			var field = v.Field(i)
+			if IsStructPtr(field.Interface()) {
+				cfgd = field.Interface()
+			} else {
+				cfgd = field.Addr().Interface()
+				if !IsStructPtr(cfgd) {
+					var err = fmt.Errorf("object [%s] is not struct or struct ptr", name)
+					fmt.Fprintln(os.Stderr, err)
+					panic(err)
+				}
+			}
+			err = cfg.Flags(cfgd) //v.Field(i).Interface())
 			if err != nil {
 				fmt.Println(err)
 				Help(pgm)
 				os.Exit(1)
 			}
 			var text = []byte{}
-			cfgd = v.Field(i).Interface()
 			text, err = json.MarshalIndent(cfgd, "", "  ")
 			if err != nil {
 				fmt.Println(err)
