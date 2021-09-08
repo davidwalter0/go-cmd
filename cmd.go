@@ -51,8 +51,11 @@ func IsStructPtr(i interface{}) (ptr bool) {
 func Init(subCmd string, pgm interface{}) (cfgd interface{}, err error) {
 	v := reflect.ValueOf(pgm)
 	if !IsStructPtr(pgm) {
-		fmt.Println(fmt.Errorf("interface is not a struct ptr"))
-		os.Exit(1)
+		var typeOfS = v.Type()
+		var name = typeOfS.Name()
+		err = fmt.Errorf("object [%s] kind [%s] interface is not a struct ptr", name, v.Kind())
+		fmt.Println(err)
+		return nil, err
 	}
 	v = v.Elem()
 	typeOfS := v.Type()
@@ -74,7 +77,7 @@ func Init(subCmd string, pgm interface{}) (cfgd interface{}, err error) {
 			if err != nil {
 				fmt.Println(err)
 				Help(pgm)
-				os.Exit(1)
+				return nil, err
 			}
 			var text = []byte{}
 			text, err = json.MarshalIndent(cfgd, "", "  ")
@@ -99,7 +102,10 @@ func Help(pgm interface{}) (text string) {
 	fmt.Fprintf(os.Stderr, "\nUsage of %s:\n\n", Program)
 	v := reflect.ValueOf(pgm)
 	if !IsStructPtr(pgm) {
-		fmt.Fprintln(os.Stderr, fmt.Errorf("interface is not a struct ptr"))
+		var typeOfS = v.Type()
+		var name = typeOfS.Name()
+		err = fmt.Errorf("object [%s] kind [%s] interface is not a struct ptr", name, v.Kind())
+		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
 	v = v.Elem()
@@ -108,15 +114,27 @@ func Help(pgm interface{}) (text string) {
 	for i := 0; i < v.NumField(); i++ {
 		flag.CommandLine.Reset()
 		var name = typeOfS.Field(i).Name
-		err = cfg.Flags(v.Field(i).Interface())
+		var cfgd interface{}
+		var field = v.Field(i)
+		if IsStructPtr(field.Interface()) {
+			cfgd = field.Interface()
+		} else {
+			cfgd = field.Addr().Interface()
+			if !IsStructPtr(cfgd) {
+				var err = fmt.Errorf("object [%s] is not struct or struct ptr", name)
+				fmt.Fprintln(os.Stderr, err)
+				panic(err)
+			}
+		}
+		err = cfg.Flags(cfgd)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
 		}
 		var doc string
-		field, ok := reflect.TypeOf(pgm).Elem().FieldByName(name)
+		var f, ok = reflect.TypeOf(pgm).Elem().FieldByName(name)
 		if ok {
-			doc = Tag(field, "doc")
+			doc = Tag(f, "doc")
 		}
 		fmt.Fprintf(os.Stderr, "%-15s\n  %s\n", name, doc)
 		flag.PrintDefaults()
