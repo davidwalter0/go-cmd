@@ -140,11 +140,6 @@ func Init(pgm interface{}) (cfgd interface{}, err error) {
 			if strings.ToLower(XsubCmd) == strings.ToLower(name) {
 				//				fmt.Printf("XsubCmd %s name %s %+v %T\n", XsubCmd, name, cfgd, cfgd)
 				fmt.Fprintf(os.Stderr, "> XsubCmd %s name %s %+v %T\n", XsubCmd, name, cfgd, cfgd)
-				//			panic(fmt.Sprintf("XsubCmd %s name %s %+v %T\n", XsubCmd, name, cfgd, cfgd))
-				//			var field = v.Field(i).Interface()
-				//			cfgd = PointerFromReflectedValue(field)
-				// cfgd = PointerFromInterface(v.String(), field.Addr().Interface())
-				//			cfgd = field.Addr().Interface()
 				cfgd = v.Field(i).Elem().Addr().Interface()
 				fmt.Fprintf(os.Stderr, ">> XsubCmd %s name %s %+v %T\n", XsubCmd, name, cfgd, cfgd)
 				if !IsStructPtr(cfgd) {
@@ -184,25 +179,25 @@ func Do() (err error) {
 }
 
 func Help(pgm interface{}) {
-	if pgm == nil {
-		panic(NilInterfaceErr)
-	}
-	var err error
 	var parts = strings.Split(os.Args[0], "/")
 	var l = len(parts)
-	var Program = parts[l-1]
-	fmt.Fprintf(os.Stderr, "\nUsage of %s:\n\n", Program)
-	v := reflect.ValueOf(pgm)
-	pgm = PointerFromInterface(v.Elem().String(), pgm)
-	typeOfS := v.Type()
-
+	var program = parts[l-1]
+	var err error
+	var v = reflect.ValueOf(pgm).Elem()
+	var typeOfS = v.Type()
+	fmt.Fprintln(os.Stderr, "Usage", program)
 	for i := 0; i < v.NumField(); i++ {
-		flag.CommandLine.Reset()
 		var name = typeOfS.Field(i).Name
 		var cfgd interface{}
-		var field = v.Field(i)
-		// cfgd = PointerFromReflectedValue(field)
-		cfgd = PointerFromInterface(field.Elem().String(), field.Addr().Interface())
+		// fmt.Printf("XsubCmd %s name %s %+v %T\n", XsubCmd, name, cfgd, cfgd)
+		// fmt.Fprintf(os.Stderr, "> XsubCmd %s name %s %+v %T\n", XsubCmd, name, cfgd, cfgd)
+		cfgd = v.Field(i).Elem().Addr().Interface()
+		// fmt.Fprintf(os.Stderr, ">> XsubCmd %s name %s %+v %T\n", XsubCmd, name, cfgd, cfgd)
+		if !IsStructPtr(cfgd) {
+			cfgd = v.Field(i).Elem().Addr().Interface()
+			// fmt.Fprintf(os.Stderr, ">>> XsubCmd %s name %s %+v %T\n", XsubCmd, name, cfgd, cfgd)
+		}
+		cfg.Reset()
 		err = cfg.Flags(cfgd)
 		if err != nil {
 			panic(err)
