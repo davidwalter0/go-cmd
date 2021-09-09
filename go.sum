@@ -9,12 +9,16 @@ github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSs
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davidwalter0/go-cfg v0.0.0-20210908003146-ce57faf8aaaa h1:y0e3TrJjo56pE9m3MmjIGYhfG8fZP4gdbEhIKsnsAMU=
 github.com/davidwalter0/go-cfg v0.0.0-20210908003146-ce57faf8aaaa/go.mod h1:PF2Le2Zc/xWIGbrLp+FBA4JypLvmolwgWVlAOOoVotw=
+github.com/davidwalter0/go-cfg v0.0.0-20210908234830-ceed33886b95 h1:/izBQA+ZBiuW7UZk7sijLt8997E+vur9Ag2Ycr9O1Yg=
+github.com/davidwalter0/go-cfg v0.0.0-20210908234830-ceed33886b95/go.mod h1:PF2Le2Zc/xWIGbrLp+FBA4JypLvmolwgWVlAOOoVotw=
 github.com/davidwalter0/go-cfg v1.2.13 h1:KURyAPUUbZgm674bUqmObB3unyCAC78PU3nMHWUxVSU=
 github.com/davidwalter0/go-cfg v1.2.13/go.mod h1:pYnEzExTXMM9VyvqZW8EZ8HglBfFtGp+T6PeqkPfe3I=
 github.com/davidwalter0/go-flag v0.0.0-20210908002747-341a98d27053 h1:vwcx5IyfLEd50zvfE5CP0C7RXCv5Apdq/Wzv1U+YBP4=
 github.com/davidwalter0/go-flag v0.0.0-20210908002747-341a98d27053/go.mod h1:xX3EXodaOhFTaqSo/5hEsNCY/6Mpkb47tXWIn+lXCxM=
 github.com/davidwalter0/go-flag v0.2.5 h1:QfeSpmh60Vj/pZ4Ev9Q8Uoe1HM+g7PIugCovwQBPRLI=
 github.com/davidwalter0/go-flag v0.2.5/go.mod h1:xX3EXodaOhFTaqSo/5hEsNCY/6Mpkb47tXWIn+lXCxM=
+github.com/davidwalter0/tracer v0.0.0-20180121044142-5d43492343ec h1:54lG0VuJOlX9iw6JiRNYP9QcgwutlWXwXHrcHgobAo4=
+github.com/davidwalter0/tracer v0.0.0-20180121044142-5d43492343ec/go.mod h1:ORk/IA6WV8ByYcl+K05CluN1xcwXY4Ijx+P/EW+mwb4=
 github.com/emicklei/go-restful v0.0.0-20170410110728-ff4f55a20633/go.mod h1:otzb+WCGbkyDHkqmQmT5YD2WR4BBwUdeQoFo8l/7tVs=
 github.com/emicklei/go-restful v2.9.5+incompatible/go.mod h1:otzb+WCGbkyDHkqmQmT5YD2WR4BBwUdeQoFo8l/7tVs=
 github.com/ghodss/yaml v0.0.0-20150909031657-73d445a93680/go.mod h1:4dBDuWmgqj2HViK6kFavaiC9ZROes6MMH2rRYeMEF04=
