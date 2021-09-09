@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"path/filepath"
 	"reflect"
 	"strings"
 	"sync"
@@ -99,103 +100,75 @@ func PointerFromInterface(name string, i interface{}) (r interface{}) {
 	return
 }
 
-/*
-func PointerFromReflectedValue(i interface{}) (r interface{}) {
-	var err error
-	var v = reflect.ValueOf(i)
-	if IsStructPtr(v.Interface()) {
-		r = v.Interface()
-	} else if IsStruct(v.Addr().Interface()) {
-		var typeOfS = v.Type()
-		var name = typeOfS.Name()
-		err = fmt.Errorf("object [%s] kind [%s] interface is not a struct ptr", name, v.Kind())
-		fmt.Fprintln(os.Stderr, err)
-		// r = v.Addr().Interface()
-	} else {
-		var typeOfS = v.Type()
-		var name = typeOfS.Name()
-		err = fmt.Errorf("object [%s] kind [%s] interface is not a struct ptr", name, v.Kind())
-		fmt.Fprintln(os.Stderr, err)
-		panic(err)
-	}
+func Do() (err error) {
 	return
 }
-*/
-var x = 0
 
-// func Init(XsubCmd string, pgm interface{}) (cfgd interface{}, err error) {
+// Tag from struct field spec info
+func Tag(f reflect.StructField, tagName string) string {
+	return string(f.Tag.Get(tagName))
+}
+
 func Init(pgm interface{}) (cfgd interface{}, err error) {
+
 	var v = reflect.ValueOf(pgm).Elem()
-	typeOfS := v.Type()
+	var typeOfS = v.Type()
 	if !IsStructPtr(pgm) {
 		err = fmt.Errorf("object [%s] kind [%s] interface is a struct ptr", typeOfS.Name(), v.Kind())
 		fmt.Fprintln(os.Stderr, err)
 		panic(err)
 	}
 	for i := 0; i < v.NumField(); i++ {
-		c, e := func() (interface{}, error) {
-			defer trace.ScopedTrace(fmt.Sprintf("for loop %d", i))()
-			var name = typeOfS.Field(i).Name
-			fmt.Printf("XsubCmd %s name %s %+v %T\n", XsubCmd, name, cfgd, cfgd)
-			if strings.ToLower(XsubCmd) == strings.ToLower(name) {
-				//				fmt.Printf("XsubCmd %s name %s %+v %T\n", XsubCmd, name, cfgd, cfgd)
-				fmt.Fprintf(os.Stderr, "> XsubCmd %s name %s %+v %T\n", XsubCmd, name, cfgd, cfgd)
+		// c, e := func() (interface{}, error) {
+		// defer trace.ScopedTrace(fmt.Sprintf("for loop %d", i))()
+		var name = typeOfS.Field(i).Name
+		// fmt.Printf("XsubCmd %s name %s %+v %T\n", XsubCmd, name, cfgd, cfgd)
+		if strings.ToLower(XsubCmd) == strings.ToLower(name) {
+			// fmt.Fprintf(os.Stderr, "> XsubCmd %s name %s %+v %T\n", XsubCmd, name, cfgd, cfgd)
+			cfgd = v.Field(i).Addr().Interface()
+			// fmt.Fprintf(os.Stderr, ">> XsubCmd %s name %s %+v %T\n", XsubCmd, name, cfgd, cfgd)
+			if !IsStructPtr(cfgd) {
 				cfgd = v.Field(i).Elem().Addr().Interface()
-				fmt.Fprintf(os.Stderr, ">> XsubCmd %s name %s %+v %T\n", XsubCmd, name, cfgd, cfgd)
-				if !IsStructPtr(cfgd) {
-					cfgd = v.Field(i).Elem().Addr().Interface()
-					fmt.Fprintf(os.Stderr, ">>> XsubCmd %s name %s %+v %T\n", XsubCmd, name, cfgd, cfgd)
-				}
-				cfg.Reset()
-				err = cfg.Flags(cfgd)
-				if err != nil {
-					fmt.Println(err)
-					Help(pgm)
-					return nil, err
-				}
-				var text = []byte{}
-				text, err = json.MarshalIndent(cfgd, "", "  ")
-				if err != nil {
-					fmt.Println(err)
-				}
-				fmt.Println(string(text))
-				// if x > 0 {
-				// 	panic(fmt.Sprintf("%+v %T\n", cfgd, cfgd))
-				// }
-				x++
+				// fmt.Fprintf(os.Stderr, ">>> XsubCmd %s name %s %+v %T\n", XsubCmd, name, cfgd, cfgd)
 			}
-			return cfgd, err
-		}()
-		if c != nil || e != nil {
-			cfgd, err = c, e
+			err = cfg.Flags(cfgd)
+			if err != nil {
+				fmt.Println(err)
+				Help(pgm)
+				return nil, err
+			}
+			// var text = []byte{}
+			// text, err = json.MarshalIndent(cfgd, "", "  ")
+			// if err != nil {
+			// 	fmt.Println(err)
+			// }
+			// fmt.Println(string(text))
 			return
 		}
+		// 	return cfgd, err
+		// }()
+		// if c != nil || e != nil {
+		// 	cfgd, err = c, e
+		// 	return
+		// }
 	}
-	return
-}
-
-func Do() (err error) {
+	Help(pgm)
 	return
 }
 
 func Help(pgm interface{}) {
-	var parts = strings.Split(os.Args[0], "/")
-	var l = len(parts)
-	var program = parts[l-1]
+	var program = filepath.Base(os.Args[0])
 	var err error
 	var v = reflect.ValueOf(pgm).Elem()
 	var typeOfS = v.Type()
+	cfg.Usage = func() {}
 	fmt.Fprintln(os.Stderr, "Usage", program)
 	for i := 0; i < v.NumField(); i++ {
 		var name = typeOfS.Field(i).Name
 		var cfgd interface{}
-		// fmt.Printf("XsubCmd %s name %s %+v %T\n", XsubCmd, name, cfgd, cfgd)
-		// fmt.Fprintf(os.Stderr, "> XsubCmd %s name %s %+v %T\n", XsubCmd, name, cfgd, cfgd)
-		cfgd = v.Field(i).Elem().Addr().Interface()
-		// fmt.Fprintf(os.Stderr, ">> XsubCmd %s name %s %+v %T\n", XsubCmd, name, cfgd, cfgd)
+		cfgd = v.Field(i).Addr().Interface()
 		if !IsStructPtr(cfgd) {
 			cfgd = v.Field(i).Elem().Addr().Interface()
-			// fmt.Fprintf(os.Stderr, ">>> XsubCmd %s name %s %+v %T\n", XsubCmd, name, cfgd, cfgd)
 		}
 		cfg.Reset()
 		err = cfg.Flags(cfgd)
@@ -211,9 +184,4 @@ func Help(pgm interface{}) {
 		flag.PrintDefaults()
 	}
 	return
-}
-
-// Tag from struct field spec info
-func Tag(f reflect.StructField, tagName string) string {
-	return string(f.Tag.Get(tagName))
 }
