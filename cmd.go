@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"path/filepath"
 	"reflect"
 	"strings"
 	"sync"
@@ -15,37 +14,25 @@ import (
 )
 
 var trace = tracer.New()
-var XsubCmd string
-var Xargs []string
 var once = sync.Once{}
 
-// Args from command line remove sub command and returning XsubCmd name
-// and Xargs
-var _ = func() {
-	Args()
-}
-
-func SubCmdArgs() (string, []string) {
-	defer trace.ScopedTrace()()
-	fmt.Fprintln(os.Stderr, "SubCmdArgs: Xargs", Xargs)
-	if len(os.Args) > 1 {
-		XsubCmd = os.Args[1]
-		if len(os.Args) > 2 {
-			Xargs = os.Args[2:]
-			os.Args = []string{os.Args[0]}
-			os.Args = append(os.Args, Xargs[:]...)
+func SubCmdArgs(args []string) (subCmd string, rest []string) {
+	defer trace.ScopedTrace(fmt.Sprintf("SubCmdArgs: args %s", args))()
+	rest = []string{args[0]}
+	if len(args) > 1 {
+		subCmd = args[1]
+		if len(args) > 2 {
+			rest = append(rest, args[2:]...)
 		}
-		Xargs = os.Args
 	}
-	// fmt.Fprintln(os.Stderr, "XsubCmd", XsubCmd, "Xargs", Xargs)
-	return XsubCmd, Xargs
+	return
 }
 
-func Args() (string, []string) {
+func Args(args []string) (subCmd string, rest []string) {
 	once.Do(func() {
-		SubCmdArgs()
+		subCmd, rest = SubCmdArgs(args)
 	})
-	return XsubCmd, Xargs
+	return
 }
 func Run(XsubCmd string, pgm interface{}) (err error) {
 	return
@@ -109,69 +96,79 @@ func Tag(f reflect.StructField, tagName string) string {
 	return string(f.Tag.Get(tagName))
 }
 
-func Init(pgm interface{}) (cfgd interface{}, err error) {
-
-	var v = reflect.ValueOf(pgm).Elem()
-	var typeOfS = v.Type()
-	if !IsStructPtr(pgm) {
-		err = fmt.Errorf("object [%s] kind [%s] interface is a struct ptr", typeOfS.Name(), v.Kind())
-		fmt.Fprintln(os.Stderr, err)
-		panic(err)
-	}
-	for i := 0; i < v.NumField(); i++ {
-		// c, e := func() (interface{}, error) {
-		// defer trace.ScopedTrace(fmt.Sprintf("for loop %d", i))()
-		var name = typeOfS.Field(i).Name
-		// fmt.Printf("XsubCmd %s name %s %+v %T\n", XsubCmd, name, cfgd, cfgd)
-		if strings.ToLower(XsubCmd) == strings.ToLower(name) {
-			// fmt.Fprintf(os.Stderr, "> XsubCmd %s name %s %+v %T\n", XsubCmd, name, cfgd, cfgd)
-			cfgd = v.Field(i).Addr().Interface()
-			// fmt.Fprintf(os.Stderr, ">> XsubCmd %s name %s %+v %T\n", XsubCmd, name, cfgd, cfgd)
-			if !IsStructPtr(cfgd) {
-				cfgd = v.Field(i).Elem().Addr().Interface()
-				// fmt.Fprintf(os.Stderr, ">>> XsubCmd %s name %s %+v %T\n", XsubCmd, name, cfgd, cfgd)
-			}
-			err = cfg.Flags(cfgd)
-			if err != nil {
-				fmt.Println(err)
-				Help(pgm)
-				return nil, err
-			}
-			// var text = []byte{}
-			// text, err = json.MarshalIndent(cfgd, "", "  ")
-			// if err != nil {
-			// 	fmt.Println(err)
-			// }
-			// fmt.Println(string(text))
-			return
+func Init(program, subCmd string, pgm interface{}) (cfgd interface{}, err error) {
+	defer trace.ScopedTrace()()
+	// flag.CommandLine = flag.NewFlagSet("pgm", flag.ContinueOnError)
+	// err = cfg.Flags(pgm)
+	// return pgm, err
+	if true {
+		cfg.Reset(subCmd)
+		var v = reflect.ValueOf(pgm).Elem()
+		var typeOfS = v.Type()
+		if !IsStructPtr(pgm) {
+			err = fmt.Errorf("object [%s] kind [%s] interface is a struct ptr", typeOfS.Name(), v.Kind())
+			fmt.Fprintln(os.Stderr, err)
+			panic(err)
 		}
-		// 	return cfgd, err
-		// }()
-		// if c != nil || e != nil {
-		// 	cfgd, err = c, e
-		// 	return
-		// }
+		for i := 0; i < v.NumField(); i++ {
+			// c, e := func() (interface{}, error) {
+			defer trace.ScopedTrace(fmt.Sprintf("for loop %d", i), subCmd)()
+			var name = strings.ToLower(typeOfS.Field(i).Name)
+			fmt.Printf("subCmd %s name %s %+v %T\n", subCmd, name, cfgd, cfgd)
+			fmt.Fprintln(os.Stderr, strings.ToLower(subCmd), strings.ToLower(name))
+			if strings.ToLower(subCmd) == strings.ToLower(name) {
+				fmt.Fprintf(os.Stderr, "> subCmd %s name %s %+v %T\n", subCmd, name, cfgd, cfgd)
+				cfgd = v.Field(i).Addr().Interface()
+				// fmt.Fprintf(os.Stderr, ">> subCmd %s name %s %+v %T\n", subCmd, name, cfgd, cfgd)
+				if !IsStructPtr(cfgd) {
+					cfgd = v.Field(i).Elem().Addr().Interface()
+					// fmt.Fprintf(os.Stderr, ">>> subCmd %s name %s %+v %T\n", subCmd, name, cfgd, cfgd)
+				}
+				// err = cfg.NestWrap("cmd", cfgd)
+				fmt.Fprintf(os.Stderr, "\n\n\n\n")
+				err = cfg.Flags(cfgd)
+				// err = cfg.Nest(cfgd)
+				if err != nil {
+					fmt.Println(err)
+					Help(program, pgm)
+					return nil, err
+				}
+				// var text = []byte{}
+				// text, err = json.MarshalIndent(cfgd, "", "  ")
+				// if err != nil {
+				// 	fmt.Println(err)
+				// }
+				// fmt.Println(string(text))
+				return
+			}
+			// 	return cfgd, err
+			// }()
+			// if c != nil || e != nil {
+			// 	cfgd, err = c, e
+			// 	return
+			// }
+		}
+		Help(program, pgm)
 	}
-	Help(pgm)
 	return
 }
 
-func Help(pgm interface{}) {
-	var program = filepath.Base(os.Args[0])
+func Help(name string, pgm interface{}) {
+	var program = name
 	var err error
 	var v = reflect.ValueOf(pgm).Elem()
 	var typeOfS = v.Type()
 	cfg.Usage = func() {}
 	fmt.Fprintln(os.Stderr, "Usage", program)
 	for i := 0; i < v.NumField(); i++ {
+		//		cfg.Reset()
 		var name = typeOfS.Field(i).Name
 		var cfgd interface{}
 		cfgd = v.Field(i).Addr().Interface()
 		if !IsStructPtr(cfgd) {
 			cfgd = v.Field(i).Elem().Addr().Interface()
 		}
-		cfg.Reset()
-		err = cfg.Flags(cfgd)
+		err = cfg.Simple(cfgd)
 		if err != nil {
 			panic(err)
 		}
@@ -180,8 +177,17 @@ func Help(pgm interface{}) {
 		if ok {
 			doc = Tag(f, "doc")
 		}
-		fmt.Fprintf(os.Stderr, "%-15s\n  %s\n", name, doc)
+		fmt.Fprintf(os.Stderr, "%-15s\n  %s\n", strings.ToLower(name), doc)
 		flag.PrintDefaults()
 	}
 	return
+}
+func JSON(i interface{}) string {
+	var err error
+	var text = []byte{}
+	text, err = json.MarshalIndent(i, "", "  ")
+	if err != nil {
+		fmt.Println(err)
+	}
+	return string(text)
 }
