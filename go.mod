@@ -3,7 +3,7 @@ module github.com/davidwalter0/go-cmd
 go 1.17
 
 require (
-	github.com/davidwalter0/go-cfg v1.3.0-rc.0
+	github.com/davidwalter0/go-cfg v1.3.1-rc.1
 	github.com/davidwalter0/go-flag v0.3.0-rc.0
 	github.com/davidwalter0/tracer v0.0.0-20180121044142-5d43492343ec
 )
